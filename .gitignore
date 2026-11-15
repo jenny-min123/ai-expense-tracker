@@ -1,0 +1,26 @@
+# Java & Maven
+target/
+*.class
+*.jar
+
+# Python
+__pycache__/
+venv/
+.venv/
+*.pyc
+
+# Node & Vue
+node_modules/
+dist/
+
+# 敏感配置与环境变量
+.env
+*.env
+# 如果 application.yml 里有明文密码，建议加上下面这行，或者你先把它改成环境变量
+# application.yml
+
+# IDE & 其他
+.idea/
+.vscode/
+*.log
+.DS_Store

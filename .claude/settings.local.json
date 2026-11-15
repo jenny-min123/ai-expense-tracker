@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sSL --max-time 20 https://raw.githubusercontent.com/garrytan/gstack/main/README.md)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(curl -sSL --max-time 30 https://docs.trytrellis.app/zh.md -o /tmp/trellis-zh.md -w \"HTTP %{http_code} size %{size_download}\\\\n\")",
+      "Read(//tmp/**)",
+      "Bash(curl -sSL --max-time 30 https://raw.githubusercontent.com/garrytan/gstack/main/README.md -o /tmp/gstack-readme.md -w \"HTTP %{http_code} size %{size_download}\\\\n\")",
+      "Bash(awk '/## Install/,/## /{print}' /tmp/gstack-readme.md)",
+      "Bash(rm -rf /tmp/gstack-main.tar.gz /tmp/gstack-extract /tmp/gstack-full.tar.gz /tmp/gstack-setup /tmp/trellis-docs.html /tmp/trellis-zh.md /tmp/trellis-install.md /tmp/gstack-readme.md)",
+      "Bash(trellis --version)",
+      "Bash(echo \"trellis $\\(trellis --version\\)\")",
+      "Bash(bun --version)",
+      "Bash(echo \"bun $\\(bun --version\\)\")"
+    ]
+  },
+  "skillOverrides": {
+    "_gstack-command": "name-only"
+  }
+}
