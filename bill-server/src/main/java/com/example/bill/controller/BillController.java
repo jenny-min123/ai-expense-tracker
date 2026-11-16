@@ -99,6 +99,9 @@ public class BillController {
         if (bill.getSourceType() == null || bill.getSourceType().isBlank()) {
             bill.setSourceType("MANUAL");
         }
+        if (bill.getBillType() == null || bill.getBillType().isBlank()) {
+            bill.setBillType("EXPENSE");
+        }
     }
 
     /**

@@ -14,7 +14,8 @@ from pydantic import BaseModel, Field
 APP_NAME = "bill-ai"
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 DEFAULT_MODEL = "deepseek-flash"
-CATEGORIES = ["餐饮", "交通", "购物", "住房", "医疗", "娱乐", "通讯", "教育", "其他"]
+EXPENSE_CATEGORIES = ["餐饮", "交通", "购物", "住房", "医疗", "娱乐", "通讯", "教育", "其他"]
+INCOME_CATEGORIES = ["工资", "奖金", "理财", "兼职", "红包", "退款", "其他收入"]
 
 logger = logging.getLogger(APP_NAME)
 logging.basicConfig(level=logging.INFO)
@@ -52,17 +53,23 @@ def build_prompt() -> str:
         "你是一个记账信息抽取器。请从用户的一句话中抽取账单信息，"
         "只输出一个 JSON 对象，不要输出解释、Markdown 代码块或任何多余文字。\n"
         "JSON 字段要求：\n"
-        "1. amount：数字（单位：元），支持“25块5”这类口语，例如 25.5；\n"
-        "2. category_name：必须从以下 9 个分类中精准选择一个："
-        + "、".join(CATEGORIES)
-        + "；\n"
-        f"3. bill_date：日期，格式 YYYY-MM-DD；今天是 {today.isoformat()}，"
+        "1. bill_type：收支类型，只能是 EXPENSE（支出）或 INCOME（收入）。"
+        "描述花出去的钱（买、花、付、缴费、消费等）为 EXPENSE；"
+        "描述收到的钱（发工资、奖金、收到红包、退款到账、报销、利息、卖出东西等）为 INCOME；"
+        "无法判断时使用 EXPENSE；\n"
+        "2. amount：正数（单位：元），支持“25块5”这类口语，例如 25.5；\n"
+        "3. category_name：必须根据 bill_type 从对应分类中精准选择一个。"
+        "支出分类：" + "、".join(EXPENSE_CATEGORIES) + "；"
+        "收入分类：" + "、".join(INCOME_CATEGORIES) + "；\n"
+        f"4. bill_date：日期，格式 YYYY-MM-DD；今天是 {today.isoformat()}，"
         f"昨天是 {yesterday.isoformat()}，“今天”请换算为 {today.isoformat()}，"
         f"用户未提及时也使用 {today.isoformat()}；\n"
-        "4. note：简短备注，最多 20 个字。\n"
+        "5. note：简短备注，最多 20 个字。\n"
         "示例输出：\n"
-        f'{{"amount": 25.5, "category_name": "交通", "bill_date": "{today.isoformat()}", '
-        '"note": "打车"}'
+        f'{{"bill_type": "EXPENSE", "amount": 25.5, "category_name": "交通", '
+        f'"bill_date": "{today.isoformat()}", "note": "打车"}}\n'
+        f'{{"bill_type": "INCOME", "amount": 8000, "category_name": "工资", '
+        f'"bill_date": "{today.isoformat()}", "note": "发工资"}}'
     )
 
 
@@ -83,15 +90,20 @@ def normalize(raw: dict) -> dict:
     amount = float(str(raw.get("amount", "")).replace("元", "").strip())
     if amount < 0:
         raise ValueError("金额不能为负数")
+    bill_type = str(raw.get("bill_type", "")).strip().upper()
+    if bill_type not in ("EXPENSE", "INCOME"):
+        bill_type = "EXPENSE"
+    allowed = INCOME_CATEGORIES if bill_type == "INCOME" else EXPENSE_CATEGORIES
     category = str(raw.get("category_name", "")).strip()
-    if category not in CATEGORIES:
-        category = "其他"
+    if category not in allowed:
+        category = "其他收入" if bill_type == "INCOME" else "其他"
     try:
         bill_date = date.fromisoformat(str(raw.get("bill_date", "")).strip())
     except ValueError:
         bill_date = date.today()
     note = str(raw.get("note", "")).strip()[:20]
     return {
+        "bill_type": bill_type,
         "amount": round(amount, 2),
         "category_name": category,
         "bill_date": bill_date.isoformat(),

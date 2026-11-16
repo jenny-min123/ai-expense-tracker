@@ -104,12 +104,20 @@ public class AiController {
         bill.setAmount(amount);
         bill.setCategoryId(category.getId());
         bill.setCategoryName(categoryName);
+        bill.setBillType(resolveBillType(data.path("bill_type").asText("")));
         bill.setBillDate(parseDate(data.path("bill_date")));
         bill.setNote(data.path("note").asText(""));
         bill.setSourceType("AI");
         bill.setAiRaw(rawText);
         billService.save(bill);
         return Result.ok(bill);
+    }
+
+    /**
+     * 校验收支类型，非法值回退为支出
+     */
+    private String resolveBillType(String value) {
+        return "INCOME".equalsIgnoreCase(value) ? "INCOME" : "EXPENSE";
     }
 
     /**

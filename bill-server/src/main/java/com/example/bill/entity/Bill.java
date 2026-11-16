@@ -29,6 +29,9 @@ public class Bill {
     /** 分类名称（冗余存储，便于查询展示） */
     private String categoryName;
 
+    /** 收支类型：EXPENSE-支出，INCOME-收入 */
+    private String billType;
+
     /** 账单日期 */
     private LocalDate billDate;
 

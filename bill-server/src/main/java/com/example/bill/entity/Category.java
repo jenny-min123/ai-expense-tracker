@@ -19,6 +19,9 @@ public class Category {
     /** 分类名称 */
     private String name;
 
+    /** 分类类型：EXPENSE-支出分类，INCOME-收入分类 */
+    private String type;
+
     /** 分类图标（emoji 或图片地址） */
     private String icon;
 
