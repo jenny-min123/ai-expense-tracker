@@ -2,7 +2,7 @@
 -- 智能记账系统 数据库初始化脚本
 -- 可重复执行：所有建库/建表语句均带 IF NOT EXISTS，
 -- 索引内联在建表语句中，初始分类按名称去重插入。
--- 执行方式：sudo mysql < sql/init.sql
+-- 执行方式：DB_PASSWORD=<你的密码> bash sql/init.sh（脚本自动替换占位符）
 -- =============================================================
 
 -- 1. 建库（utf8mb4）
@@ -11,9 +11,9 @@ CREATE DATABASE IF NOT EXISTS `bill_db`
     COLLATE utf8mb4_unicode_ci;
 
 -- 2. 应用账号与授权
-CREATE USER IF NOT EXISTS 'bill_user'@'localhost' IDENTIFIED BY 'bill123456';
+CREATE USER IF NOT EXISTS 'bill_user'@'localhost' IDENTIFIED BY '__DB_PASSWORD__';
 -- 已存在时也确保密码与脚本一致
-ALTER USER 'bill_user'@'localhost' IDENTIFIED BY 'bill123456';
+ALTER USER 'bill_user'@'localhost' IDENTIFIED BY '__DB_PASSWORD__';
 GRANT ALL PRIVILEGES ON `bill_db`.* TO 'bill_user'@'localhost';
 FLUSH PRIVILEGES;
 

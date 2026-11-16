@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: bill-server
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/bill_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: bill_user
+    password: ${DB_PASSWORD}  # 从环境变量读取，仓库中不保存明文密码
+
+mybatis-plus:
+  configuration:
+    # 数据库下划线字段自动映射为驼峰属性
+    map-underscore-to-camel-case: true
+    # 控制台打印执行的 SQL
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

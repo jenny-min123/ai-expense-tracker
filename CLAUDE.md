@@ -34,11 +34,11 @@ AI 智能记账系统，三个模块分离部署：bill-server（Spring Boot，:
 - 后端：`cd bill-server && mvn -q compile`；打包运行 `mvn clean package && java -jar target/bill-server-1.0.0.jar`。
 - 前端：`cd bill-web && npm install && npm run build`（必须构建成功）。
 - AI：`cd bill-ai && source venv/bin/activate && uvicorn main:app --host 127.0.0.1 --port 8000`。
-- 数据库初始化：`sudo mysql < sql/init.sql`。
+- 数据库初始化：`DB_PASSWORD=<你的密码> bash sql/init.sh`（需管理员 MySQL 连接）。
 
 ## 凭据与环境
 
-- 数据库：bill_user@localhost，密码写在 application.yml，仅限本地开发。
+- 数据库：bill_user@localhost，密码从环境变量 DB_PASSWORD 读取；仓库中禁止出现明文密码。
 - DeepSeek API Key 必须从环境变量 DEEPSEEK_API_KEY 读取，任何文件中出现明文 Key 视为错误。
 - .env 不进版本库。
 
