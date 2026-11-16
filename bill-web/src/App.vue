@@ -1,6 +1,9 @@
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { createBill, deleteBill, fetchBills, fetchCategories, parseAiBill, updateBill } from './api/bill'
+
+/** 图表库体积较大，打开统计弹窗时再加载 */
+const StatsModal = defineAsyncComponent(() => import('./components/StatsModal.vue'))
 
 /** 分类接口不可用时的兜底数据 */
 const DEFAULT_CATEGORIES = [
@@ -69,6 +72,9 @@ const editCategoryOptions = computed(() =>
 /* ---------- 删除账单 ---------- */
 const deleteTarget = ref(null)
 const deleting = ref(false)
+
+/* ---------- 收支统计 ---------- */
+const statsVisible = ref(false)
 
 /** 当前收支类型下的分类选项 */
 const categoryOptions = computed(() =>
@@ -348,9 +354,26 @@ onUnmounted(() => {
             <p>一句话记一笔账，剩下的交给 AI</p>
           </div>
         </div>
-        <div class="hero-total">
-          <span class="hero-total-label">累计账单</span>
-          <strong>{{ total }}<small> 笔</small></strong>
+        <div class="hero-actions">
+          <button class="btn stats-btn" type="button" @click="statsVisible = true">
+            <svg
+              class="stats-icon"
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+            </svg>
+            收支统计
+          </button>
+          <div class="hero-total">
+            <span class="hero-total-label">累计账单</span>
+            <strong>{{ total }}<small> 笔</small></strong>
+          </div>
         </div>
       </header>
 
@@ -596,6 +619,8 @@ onUnmounted(() => {
         {{ toast.text }}
       </div>
     </transition>
+
+    <StatsModal v-if="statsVisible" @close="statsVisible = false" />
   </div>
 </template>
 
@@ -656,6 +681,30 @@ onUnmounted(() => {
   margin: 4px 0 0;
   font-size: 13px;
   color: var(--muted);
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stats-btn {
+  height: 44px;
+  padding: 0 18px;
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed 55%, #0ea5e9);
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.3);
+}
+
+.stats-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(79, 70, 229, 0.38);
+}
+
+.stats-icon {
+  flex-shrink: 0;
 }
 
 .hero-total {
@@ -1244,6 +1293,16 @@ onUnmounted(() => {
 
   .hero-total {
     display: none;
+  }
+
+  .hero-actions {
+    gap: 8px;
+  }
+
+  .stats-btn {
+    height: 42px;
+    padding: 0 14px;
+    font-size: 13px;
   }
 
   .ai-row {

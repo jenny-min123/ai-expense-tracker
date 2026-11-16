@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 /**
@@ -87,6 +89,37 @@ public class BillController {
     @GetMapping("/stat")
     public Result<Map<String, Object>> stat() {
         return Result.ok(billService.stat());
+    }
+
+    /**
+     * 按月统计收入与支出
+     */
+    @GetMapping("/stat/monthly")
+    public Result<Map<String, Object>> monthlyStat(@RequestParam(required = false) String startMonth,
+                                                   @RequestParam(required = false) String endMonth) {
+        YearMonth end = parseMonth(endMonth, YearMonth.now());
+        YearMonth start = parseMonth(startMonth, end.minusMonths(5));
+        if (start.isAfter(end)) {
+            return Result.fail("开始月份不能晚于结束月份");
+        }
+        if (start.isBefore(end.minusMonths(35))) {
+            return Result.fail("统计范围不能超过 36 个月");
+        }
+        return Result.ok(billService.monthlyStat(start, end));
+    }
+
+    /**
+     * 解析 yyyy-MM，格式错误时使用默认值
+     */
+    private YearMonth parseMonth(String text, YearMonth defaultValue) {
+        if (text == null || text.isBlank()) {
+            return defaultValue;
+        }
+        try {
+            return YearMonth.parse(text);
+        } catch (DateTimeParseException e) {
+            return defaultValue;
+        }
     }
 
     /**

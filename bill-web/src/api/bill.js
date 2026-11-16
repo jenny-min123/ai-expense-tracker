@@ -29,3 +29,8 @@ export function fetchBills(page = 1, size = 10) {
 export function fetchCategories() {
   return http.get('/api/categories')
 }
+
+/** 按月统计收入与支出 */
+export function fetchMonthlyStat(startMonth, endMonth) {
+  return http.get('/api/bills/stat/monthly', { params: { startMonth, endMonth } })
+}
