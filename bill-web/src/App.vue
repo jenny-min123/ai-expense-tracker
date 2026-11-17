@@ -53,6 +53,13 @@ const form = reactive({
 })
 const submitting = ref(false)
 
+/** 右侧记一笔面板 */
+const composeVisible = ref(false)
+
+function closeCompose() {
+  composeVisible.value = false
+}
+
 /* ---------- 编辑账单 ---------- */
 const editVisible = ref(false)
 const editingBill = ref(null)
@@ -344,7 +351,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'compose-open': composeVisible }">
     <div class="container">
       <header class="hero">
         <div class="brand">
@@ -355,6 +362,9 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="hero-actions">
+          <button class="btn btn-primary compose-btn" type="button" @click="composeVisible = true">
+            ＋ 记一笔
+          </button>
           <button class="btn stats-btn" type="button" @click="statsVisible = true">
             <svg
               class="stats-icon"
@@ -376,85 +386,6 @@ onUnmounted(() => {
           </div>
         </div>
       </header>
-
-      <section class="card ai-card">
-        <div class="card-title">
-          <h2>AI 智能记账</h2>
-          <span class="hint">口语也行，自动识别收支、金额、分类和日期</span>
-        </div>
-        <div class="ai-row">
-          <input
-            v-model="aiText"
-            class="ai-input"
-            type="text"
-            placeholder="试试输入：今天打车花了25块5"
-            :disabled="aiLoading"
-            @keyup.enter="handleAiParse"
-          />
-          <button class="btn btn-primary ai-btn" :disabled="aiLoading" @click="handleAiParse">
-            <span v-if="aiLoading" class="spinner" aria-hidden="true"></span>
-            {{ aiLoading ? 'AI 解析中…' : 'AI 智能记账' }}
-          </button>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="card-title">
-          <h2>手动记账</h2>
-        </div>
-        <form class="manual-form" @submit.prevent="handleManualSubmit">
-          <div class="field field-type">
-            <label>收支类型</label>
-            <div class="type-switch" role="group" aria-label="收支类型">
-              <button
-                type="button"
-                :class="{ active: form.billType === 'EXPENSE' }"
-                @click="setBillType('EXPENSE')"
-              >
-                支出
-              </button>
-              <button
-                type="button"
-                :class="{ active: form.billType === 'INCOME' }"
-                @click="setBillType('INCOME')"
-              >
-                收入
-              </button>
-            </div>
-          </div>
-          <div class="field">
-            <label for="amount">金额（元）</label>
-            <input
-              id="amount"
-              v-model="form.amount"
-              type="number"
-              min="0.01"
-              step="0.01"
-              inputmode="decimal"
-              placeholder="0.00"
-            />
-          </div>
-          <div class="field">
-            <label for="category">分类</label>
-            <select id="category" v-model="form.categoryName">
-              <option v-for="item in categoryOptions" :key="item.name" :value="item.name">
-                {{ item.icon }} {{ item.name }}
-              </option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="billDate">日期</label>
-            <input id="billDate" v-model="form.billDate" type="date" />
-          </div>
-          <div class="field field-grow">
-            <label for="note">备注</label>
-            <input id="note" v-model="form.note" type="text" maxlength="500" placeholder="选填，例如：午饭" />
-          </div>
-          <button class="btn btn-primary submit-btn" type="submit" :disabled="submitting">
-            {{ submitting ? '提交中…' : '提交' }}
-          </button>
-        </form>
-      </section>
 
       <section class="card">
         <div class="card-title">
@@ -619,6 +550,93 @@ onUnmounted(() => {
         {{ toast.text }}
       </div>
     </transition>
+
+    <div v-if="composeVisible" class="compose-mask" aria-hidden="true" @click="closeCompose"></div>
+    <aside v-if="composeVisible" class="compose-panel" role="dialog" aria-labelledby="compose-title">
+      <div class="compose-head">
+        <h2 id="compose-title">记一笔</h2>
+        <button class="icon-btn" type="button" aria-label="关闭" @click="closeCompose">×</button>
+      </div>
+
+      <div class="compose-ai">
+        <div class="ai-row">
+          <input
+            v-model="aiText"
+            class="ai-input"
+            type="text"
+            placeholder="试试输入：今天打车花了25块5"
+            :disabled="aiLoading"
+            @keyup.enter="handleAiParse"
+          />
+          <button class="btn btn-primary ai-btn" :disabled="aiLoading" @click="handleAiParse">
+            <span v-if="aiLoading" class="spinner" aria-hidden="true"></span>
+            {{ aiLoading ? 'AI 解析中…' : 'AI 智能记账' }}
+          </button>
+        </div>
+        <p class="compose-hint">口语也行，自动识别收支、金额、分类和日期</p>
+      </div>
+
+      <div class="compose-divider"></div>
+
+      <form class="compose-form" @submit.prevent="handleManualSubmit">
+        <div class="field">
+          <label>收支类型</label>
+          <div class="type-switch" role="group" aria-label="收支类型">
+            <button
+              type="button"
+              :class="{ active: form.billType === 'EXPENSE' }"
+              @click="setBillType('EXPENSE')"
+            >
+              支出
+            </button>
+            <button
+              type="button"
+              :class="{ active: form.billType === 'INCOME' }"
+              @click="setBillType('INCOME')"
+            >
+              收入
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="compose-amount">金额（元）</label>
+          <input
+            id="compose-amount"
+            v-model="form.amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            inputmode="decimal"
+            placeholder="0.00"
+          />
+        </div>
+        <div class="field">
+          <label for="compose-category">分类</label>
+          <select id="compose-category" v-model="form.categoryName">
+            <option v-for="item in categoryOptions" :key="item.name" :value="item.name">
+              {{ item.icon }} {{ item.name }}
+            </option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="compose-date">日期</label>
+          <input id="compose-date" v-model="form.billDate" type="date" />
+        </div>
+        <div class="field">
+          <label for="compose-note">备注</label>
+          <input
+            id="compose-note"
+            v-model="form.note"
+            type="text"
+            maxlength="500"
+            placeholder="选填，例如：午饭"
+          />
+        </div>
+        <button class="btn btn-primary compose-submit" type="submit" :disabled="submitting">
+          {{ submitting ? '提交中…' : '提交' }}
+        </button>
+      </form>
+    </aside>
 
     <StatsModal v-if="statsVisible" @close="statsVisible = false" />
   </div>
@@ -1334,6 +1352,124 @@ onUnmounted(() => {
 
   .modal-form {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 右侧记一笔面板 */
+.compose-btn {
+  height: 44px;
+  padding: 0 18px;
+  font-weight: 600;
+}
+
+.page.compose-open {
+  padding-right: 420px;
+}
+
+.compose-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 380px;
+  max-width: 100%;
+  height: 100vh;
+  padding: 22px 24px 28px;
+  overflow-y: auto;
+  background: var(--card);
+  border-left: 1px solid var(--border);
+  box-shadow: -18px 0 48px rgba(15, 23, 42, 0.12);
+  animation: compose-in 0.22s ease;
+}
+
+@keyframes compose-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.compose-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.compose-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.compose-panel .ai-row {
+  flex-wrap: wrap;
+}
+
+.compose-panel .ai-input {
+  min-width: 0;
+  height: 42px;
+  font-size: 14px;
+}
+
+.compose-panel .ai-btn {
+  height: 42px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.compose-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.compose-divider {
+  height: 1px;
+  background: var(--border-soft);
+}
+
+.compose-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.compose-form .field {
+  min-width: 0;
+}
+
+.compose-submit {
+  height: 44px;
+  margin-top: 2px;
+}
+
+.compose-mask {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .page.compose-open {
+    padding-right: 20px;
+  }
+
+  .compose-mask {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(15, 23, 42, 0.32);
+  }
+
+  .compose-panel {
+    width: min(420px, 92vw);
   }
 }
 </style>
